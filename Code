@@ -1,0 +1,86 @@
+function onOpen() {
+  var ui = SpreadsheetApp.getUi();
+  ui.createMenu('🎮 Game Menu')
+      .addItem('Start New Game', 'startNewGame')
+      .addItem('Submit Answer', 'checkAnswer')
+      .addToUi();
+}
+
+const QUESTIONS = [
+  {
+    q: "What is the capital of France?",
+    options: ["A) London", "B) Paris", "C) Berlin", "D) Madrid"],
+    answer: "B"
+  },
+  {
+    q: "Which planet is known as the Red Planet?",
+    options: ["A) Venus", "B) Saturn", "C) Mars", "D) Jupiter"],
+    answer: "C"
+  },
+  {
+    q: "What is 5 + 5 * 2?",
+    options: ["A) 20", "B) 15", "C) 25", "D) 10"],
+    answer: "B"
+  },
+  {
+    q: "Which programming language runs natively in web browsers?",
+    options: ["A) Python", "B) C++", "C) JavaScript", "D) Java"],
+    answer: "C"
+  }
+];
+
+function startNewGame() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  
+  sheet.getRange("B4").setValue(0);       
+  sheet.getRange("B6").setValue(1);       
+  sheet.getRange("B12").setValue("");     
+  
+  loadQuestion(1);
+  SpreadsheetApp.getUi().alert("Game Started! Good luck!");
+}
+
+function loadQuestion(qNum) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var index = qNum - 1;
+  
+  if (index < QUESTIONS.length) {
+    sheet.getRange("B6").setValue(qNum);
+    sheet.getRange("B9").setValue(QUESTIONS[index].q + "\n\nOptions:\n" + QUESTIONS[index].options.join("\n"));
+  } else {
+    var finalScore = sheet.getRange("B4").getValue();
+    sheet.getRange("B9").setValue("🎉 GAME OVER! Final Score: " + finalScore + " / " + QUESTIONS.length);
+    SpreadsheetApp.getUi().alert("Game Over! You finished with a score of " + finalScore + "/" + QUESTIONS.length);
+  }
+}
+
+function checkAnswer() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var currentQ = sheet.getRange("B6").getValue();
+  var playerAnswer = String(sheet.getRange("B12").getValue()).trim().toUpperCase();
+  
+  if (!playerAnswer) {
+    SpreadsheetApp.getUi().alert("Please type your answer (A, B, C, or D) into cell B12 first!");
+    return;
+  }
+  
+  var index = currentQ - 1;
+  if (index >= QUESTIONS.length) {
+    SpreadsheetApp.getUi().alert("Game is already finished! Click 'Start New Game' to play again.");
+    return;
+  }
+  
+  var correctAnswer = QUESTIONS[index].answer;
+  var currentScore = sheet.getRange("B4").getValue();
+  
+  if (playerAnswer.startsWith(correctAnswer)) {
+    currentScore += 1;
+    sheet.getRange("B4").setValue(currentScore);
+    SpreadsheetApp.getUi().alert("✅ Correct!");
+  } else {
+    SpreadsheetApp.getUi().alert("❌ Incorrect! The correct answer was " + correctAnswer);
+  }
+  
+  sheet.getRange("B12").setValue("");
+  loadQuestion(currentQ + 1);
+}
